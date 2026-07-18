@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Modern Material 3 theme. The Compose side uses FuelMateTheme (dynamic color);
+         this resource is used by the manifest / window background before Compose takes over. -->
+    <style name="Theme.FuelMate" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
