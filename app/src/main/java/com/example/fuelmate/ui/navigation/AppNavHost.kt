@@ -1,8 +1,7 @@
 package com.example.fuelmate.ui.navigation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
@@ -15,35 +14,36 @@ import com.example.fuelmate.ui.screen.AddFuelEntryScreen
 import com.example.fuelmate.ui.screen.VehicleDetailScreen
 import com.example.fuelmate.ui.screen.VehicleListScreen
 
+private const val TRANSITION_DURATION = 300
+
 @Composable
 fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = Routes.VEHICLE_LIST,
-        // Faster, snappier screen transitions (150ms instead of the default ~300ms).
         enterTransition = {
             slideInHorizontally(
-                initialOffsetX = { it / 4 },
-                animationSpec = tween(150)
-            ) + fadeIn(animationSpec = tween(150))
+                initialOffsetX = { it },
+                animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
+            )
         },
         exitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { -it / 4 },
-                animationSpec = tween(150)
-            ) + fadeOut(animationSpec = tween(150))
+                targetOffsetX = { -it },
+                animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
+            )
         },
         popEnterTransition = {
             slideInHorizontally(
-                initialOffsetX = { -it / 4 },
-                animationSpec = tween(150)
-            ) + fadeIn(animationSpec = tween(150))
+                initialOffsetX = { -it },
+                animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
+            )
         },
         popExitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { it / 4 },
-                animationSpec = tween(150)
-            ) + fadeOut(animationSpec = tween(150))
+                targetOffsetX = { it },
+                animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
+            )
         }
     ) {
         composable(Routes.VEHICLE_LIST) {

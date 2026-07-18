@@ -5,6 +5,11 @@ All notable changes to this project are documented here. This project adheres to
 
 The current version is tracked in the VERSION file. To record a new release, run scripts\bump-version.bat (see that script for usage). Each bump updates this changelog, the VERSION file, and the Android versionCode/versionName in app/build.gradle.kts, then commits and tags the release.
 
+## [1.1.1] - 2026-07-18
+
+### Changed
+- Screen transitions now use a WhatsApp-style horizontal slide (new screen slides in from the right, old slides out to the left; reversed on back) at the normal 300ms duration, replacing the earlier sped-up 150ms slide and the default fade.
+
 ## [1.1.0] - 2026-07-18
 
 ### Added
