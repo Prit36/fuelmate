@@ -8,6 +8,7 @@ import com.example.fuelmate.data.model.VehicleStats
 import com.example.fuelmate.data.repository.FuelRepository
 import com.example.fuelmate.data.repository.VehicleRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -19,7 +20,8 @@ data class VehicleDetailUiState(
     val vehicle: Vehicle? = null,
     val records: List<FuelRecord> = emptyList(),
     val stats: VehicleStats = VehicleStats(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val pendingDelete: FuelRecord? = null
 )
 
 class VehicleDetailViewModel(
@@ -36,14 +38,16 @@ class VehicleDetailViewModel(
 
     private val records = fuelRepository.observeRecords(vehicleId)
     private val stats = fuelRepository.observeStats(vehicleId)
+    private val pendingDelete = MutableStateFlow<FuelRecord?>(null)
 
     val uiState: StateFlow<VehicleDetailUiState> =
-        combine(vehicle, records, stats) { v, recs, st ->
+        combine(vehicle, records, stats, pendingDelete) { v, recs, st, del ->
             VehicleDetailUiState(
                 vehicle = v,
                 records = recs,
                 stats = st,
-                isLoading = false
+                isLoading = false,
+                pendingDelete = del
             )
         }.stateIn(
             scope = viewModelScope,
@@ -51,7 +55,19 @@ class VehicleDetailViewModel(
             initialValue = VehicleDetailUiState(isLoading = true)
         )
 
-    fun deleteEntry(record: FuelRecord) {
-        viewModelScope.launch { fuelRepository.deleteEntry(record.entry) }
+    fun requestDeleteEntry(record: FuelRecord) {
+        pendingDelete.value = record
+    }
+
+    fun confirmDeleteEntry() {
+        val record = pendingDelete.value ?: return
+        viewModelScope.launch {
+            fuelRepository.deleteEntry(record.entry)
+            pendingDelete.value = null
+        }
+    }
+
+    fun cancelDeleteEntry() {
+        pendingDelete.value = null
     }
 }

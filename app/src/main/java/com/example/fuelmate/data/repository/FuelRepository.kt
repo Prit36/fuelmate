@@ -15,6 +15,9 @@ interface FuelRepository {
     /** Returns the most recent entry for a vehicle (used to prefill/validate the next fill-up). */
     suspend fun getLatest(vehicleId: Long): FuelEntry?
 
+    /** Returns a single entry by id (used when editing). */
+    suspend fun getEntry(id: Long): FuelEntry?
+
     /** Adds a new fuel-up. */
     suspend fun addEntry(
         vehicleId: Long,
@@ -24,6 +27,9 @@ interface FuelRepository {
         date: Long,
         note: String?
     )
+
+    /** Updates an existing fuel-up. */
+    suspend fun updateEntry(entry: FuelEntry)
 
     /** Deletes a fuel-up. */
     suspend fun deleteEntry(entry: FuelEntry)

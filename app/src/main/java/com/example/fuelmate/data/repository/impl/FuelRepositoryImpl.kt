@@ -26,6 +26,9 @@ class FuelRepositoryImpl(
     override suspend fun getLatest(vehicleId: Long): FuelEntry? =
         fuelEntryDao.getLatestForVehicle(vehicleId)
 
+    override suspend fun getEntry(id: Long): FuelEntry? =
+        fuelEntryDao.getById(id)
+
     override suspend fun addEntry(
         vehicleId: Long,
         odometerKm: Double,
@@ -48,6 +51,8 @@ class FuelRepositoryImpl(
             )
         )
     }
+
+    override suspend fun updateEntry(entry: FuelEntry) = fuelEntryDao.update(entry)
 
     override suspend fun deleteEntry(entry: FuelEntry) = fuelEntryDao.delete(entry)
 }

@@ -5,10 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,18 +21,17 @@ import com.example.fuelmate.ui.util.formatRupees
 @Composable
 fun FuelEntryRow(
     record: FuelRecord,
-    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val entry = record.entry
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(start = 16.dp, end = 56.dp, top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = formatDate(entry.date),
                 style = MaterialTheme.typography.titleMedium
@@ -58,13 +53,6 @@ fun FuelEntryRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-        IconButton(onClick = onDelete) {
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = "Delete entry",
-                tint = MaterialTheme.colorScheme.error
-            )
         }
     }
 }

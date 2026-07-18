@@ -41,7 +41,7 @@ val appModule = module {
     viewModel { (vehicleId: Long) ->
         VehicleDetailViewModel(get(), get(), vehicleId = vehicleId)
     }
-    viewModel { (vehicleId: Long) ->
-        AddFuelEntryViewModel(get(), vehicleId = vehicleId)
+    viewModel { (vehicleId: Long, entryId: Long?) ->
+        AddFuelEntryViewModel(get(), vehicleId = vehicleId, entryId = entryId)
     }
 }

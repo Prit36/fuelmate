@@ -19,5 +19,7 @@ class VehicleRepositoryImpl(
         return vehicleDao.insert(Vehicle(name = trimmed))
     }
 
+    override suspend fun updateVehicle(vehicle: Vehicle) = vehicleDao.update(vehicle)
+
     override suspend fun deleteVehicle(vehicle: Vehicle) = vehicleDao.delete(vehicle)
 }
