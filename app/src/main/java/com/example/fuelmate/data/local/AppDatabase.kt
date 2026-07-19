@@ -10,7 +10,7 @@ import com.example.fuelmate.data.local.entity.Vehicle
 
 /**
  * exportSchema = true persists schema history under `schemas/` so Room can verify
- * AutoMigrations at build time (modern best practice with Room 2.8+).
+ * AutoMigrations at build time.
  */
 @Database(
     entities = [Vehicle::class, FuelEntry::class],

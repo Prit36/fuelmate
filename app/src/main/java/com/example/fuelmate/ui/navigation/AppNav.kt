@@ -5,6 +5,7 @@ object Routes {
     const val VEHICLE_DETAIL = "vehicle_detail/{vehicleId}"
     const val ADD_FUEL_ENTRY = "add_fuel/{vehicleId}"
     const val EDIT_FUEL_ENTRY = "edit_fuel/{vehicleId}/{entryId}"
+    const val SETTINGS = "settings"
 
     fun vehicleDetail(vehicleId: Long) = "vehicle_detail/$vehicleId"
     fun addFuel(vehicleId: Long) = "add_fuel/$vehicleId"

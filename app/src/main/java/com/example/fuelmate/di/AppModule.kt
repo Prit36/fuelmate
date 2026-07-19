@@ -1,6 +1,7 @@
 package com.example.fuelmate.di
 
 import androidx.room.Room
+import com.example.fuelmate.data.backup.BackupRepository
 import com.example.fuelmate.data.local.AppDatabase
 import com.example.fuelmate.data.local.dao.FuelEntryDao
 import com.example.fuelmate.data.local.dao.VehicleDao
@@ -9,6 +10,7 @@ import com.example.fuelmate.data.repository.VehicleRepository
 import com.example.fuelmate.data.repository.impl.FuelRepositoryImpl
 import com.example.fuelmate.data.repository.impl.VehicleRepositoryImpl
 import com.example.fuelmate.ui.viewmodel.AddFuelEntryViewModel
+import com.example.fuelmate.ui.viewmodel.SettingsViewModel
 import com.example.fuelmate.ui.viewmodel.VehicleDetailViewModel
 import com.example.fuelmate.ui.viewmodel.VehicleListViewModel
 import org.koin.android.ext.koin.androidContext
@@ -19,14 +21,10 @@ import org.koin.dsl.module
 val appModule = module {
 
     // Room database
-    // With exportSchema = true + declared AutoMigrations, Room handles schema changes
-    // safely. fallbackToDestructiveMigrationOnDowngrade keeps downgrades from crashing.
     single<AppDatabase> {
-        Room.databaseBuilder(
-            androidContext(),
-            AppDatabase::class.java,
-            AppDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false).build()
+        Room.databaseBuilder(androidContext(), AppDatabase::class.java, AppDatabase.DATABASE_NAME)
+            .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = false)
+            .build()
     }
 
     single<VehicleDao> { get<AppDatabase>().vehicleDao() }
@@ -35,9 +33,11 @@ val appModule = module {
     // Repositories
     single<VehicleRepository> { VehicleRepositoryImpl(get()) }
     single<FuelRepository> { FuelRepositoryImpl(get()) }
+    single { BackupRepository(get()) }
 
     // ViewModels — modern Koin DSL (no manual parametersOf; constructor args injected).
     viewModelOf(::VehicleListViewModel)
+    viewModelOf(::SettingsViewModel)
     viewModel { (vehicleId: Long) ->
         VehicleDetailViewModel(get(), get(), vehicleId = vehicleId)
     }

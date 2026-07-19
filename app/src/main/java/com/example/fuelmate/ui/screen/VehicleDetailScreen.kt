@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Card
@@ -52,6 +53,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.fuelmate.data.export.CsvExport
 import com.example.fuelmate.data.model.FuelRecord
 import com.example.fuelmate.data.model.VehicleStats
 import com.example.fuelmate.ui.components.ConfirmDeleteDialog
@@ -75,6 +77,7 @@ fun VehicleDetailScreen(
     onBack: () -> Unit,
     onAddFuel: (Long) -> Unit,
     onEditFuel: (Long) -> Unit,
+    onExportCsv: (String, String) -> Unit,
     viewModel: VehicleDetailViewModel = koinViewModel(parameters = { parametersOf(vehicleId) })
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,6 +97,27 @@ fun VehicleDetailScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surface
                 ),
+                actions = {
+                    IconButton(
+                        onClick = {
+                            val v = state.vehicle ?: return@IconButton
+                            if (state.records.isEmpty()) return@IconButton
+                            val csv = CsvExport.toCsv(v, state.records)
+                            val stamp = java.time.format.DateTimeFormatter
+                                .ofPattern("yyyyMMdd", java.util.Locale.ENGLISH)
+                                .withZone(java.time.ZoneId.systemDefault())
+                                .format(java.time.Instant.now())
+                            val safeName = v.name.replace("[^a-zA-Z0-9]+".toRegex(), "_")
+                            onExportCsv(csv, "fuelmate-${safeName}-$stamp.csv")
+                        },
+                        enabled = state.vehicle != null && state.records.isNotEmpty()
+                    ) {
+                        Icon(
+                            Icons.Filled.Download,
+                            contentDescription = "Export CSV"
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior
             )
         },

@@ -5,6 +5,13 @@ All notable changes to this project are documented here. This project adheres to
 
 The current version is tracked in the VERSION file. To record a new release, run scripts\bump-version.bat (see that script for usage). Each bump updates this changelog, the VERSION file, and the Android versionCode/versionName in app/build.gradle.kts, then commits and tags the release.
 
+## [1.2.0] - 2026-07-19
+
+### Added
+- Backup & restore: portable JSON backup of all vehicles and fuel entries, exported/imported via the system document picker (runs inside a single Room transaction so a partial import leaves data untouched).
+- CSV export: per-vehicle fuel records exported to CSV via the document picker (available from the vehicle detail screen and Settings).
+- Settings screen with backup, restore, and CSV export actions, plus a Koin-wired `SettingsViewModel`.
+
 ## [1.1.1] - 2026-07-18
 
 ### Changed

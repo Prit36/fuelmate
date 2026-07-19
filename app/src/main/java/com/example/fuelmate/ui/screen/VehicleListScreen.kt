@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
@@ -71,6 +72,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun VehicleListScreen(
     onVehicleClick: (Long) -> Unit,
+    onSettings: () -> Unit,
     viewModel: VehicleListViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -100,6 +102,14 @@ fun VehicleListScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surface
                 ),
+                actions = {
+                    IconButton(onClick = onSettings) {
+                        Icon(
+                            Icons.Filled.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior
             )
         },

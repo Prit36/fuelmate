@@ -1,12 +1,14 @@
 package com.example.fuelmate.ui.util
 
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH)
+private val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.ENGLISH)
+    .withZone(ZoneId.systemDefault())
 
-fun formatDate(millis: Long): String = dateFormatter.format(Date(millis))
+fun formatDate(millis: Long): String = dateFormatter.format(Instant.ofEpochMilli(millis))
 
 fun formatKm(value: Double): String =
     if (value % 1.0 == 0.0) "%,d".format(value.toLong()) else "%,.2f".format(value)
