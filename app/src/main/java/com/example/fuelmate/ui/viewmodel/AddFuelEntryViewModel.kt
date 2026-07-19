@@ -2,6 +2,7 @@ package com.example.fuelmate.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fuelmate.data.local.entity.FuelEntry
 import com.example.fuelmate.data.repository.FuelRepository
 import com.example.fuelmate.ui.util.formatNum
 import kotlinx.coroutines.channels.Channel
@@ -47,6 +48,9 @@ class AddFuelEntryViewModel(
 
     val isEditing: Boolean get() = entryId != null
 
+    // Most recent entry for this vehicle, used to offer a "same as last" quick-fill.
+    private var latest: FuelEntry? = null
+
     init {
         viewModelScope.launch {
             if (entryId != null) {
@@ -65,12 +69,29 @@ class AddFuelEntryViewModel(
                     )
                 }
             } else {
-                val latest = fuelRepository.getLatest(vehicleId)
+                latest = fuelRepository.getLatest(vehicleId)
                 _state.value = _state.value.copy(
                     odometer = latest?.odometerKm?.let { if (it > 0) it.toString() else "" } ?: "",
                     minOdometer = latest?.odometerKm ?: 0.0
                 )
             }
+        }
+    }
+
+    /** True when a previous entry exists to copy values from (add mode only). */
+    val hasLatest: Boolean get() = !isEditing && latest != null
+
+    /** One-tap quick-fill: copy liters, amount, and note from the most recent entry. */
+    fun fillFromLatest() {
+        val l = latest ?: return
+        update {
+            it.copy(
+                liters = l.liters.toString(),
+                amount = l.amountPaid.toString(),
+                note = l.note ?: "",
+                litersError = null,
+                amountError = null
+            )
         }
     }
 

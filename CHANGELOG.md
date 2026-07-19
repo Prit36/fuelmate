@@ -5,6 +5,12 @@ All notable changes to this project are documented here. This project adheres to
 
 The current version is tracked in the VERSION file. To record a new release, run scripts\bump-version.bat (see that script for usage). Each bump updates this changelog, the VERSION file, and the Android versionCode/versionName in app/build.gradle.kts, then commits and tags the release.
 
+## [1.3.0] - 2026-07-19
+
+### Added
+- Search, filter, and sort on the fuel history list (VehicleDetailScreen): text search over entry notes, an inclusive date-range filter, and sort by date / odometer / cost (tap a chip to toggle asc/desc). A "X of Y" count shows how many entries match.
+- "Same as last fill-up" one-tap quick-fill on the Add/Edit fuel screen: copies liters, amount, and note from the most recent entry (add mode only).
+
 ## [1.2.0] - 2026-07-19
 
 ### Added

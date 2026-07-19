@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,9 +21,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Delete
@@ -32,15 +37,19 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +75,7 @@ import com.example.fuelmate.ui.util.formatKm
 import com.example.fuelmate.ui.util.formatLiters
 import com.example.fuelmate.ui.util.formatMileage
 import com.example.fuelmate.ui.util.formatRupees
+import com.example.fuelmate.ui.viewmodel.SortField
 import com.example.fuelmate.ui.viewmodel.VehicleDetailViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -81,6 +91,7 @@ fun VehicleDetailScreen(
     viewModel: VehicleDetailViewModel = koinViewModel(parameters = { parametersOf(vehicleId) })
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val visibleRecords by viewModel.visibleRecords.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -143,6 +154,15 @@ fun VehicleDetailScreen(
                 padding = padding,
                 stats = state.stats,
                 records = state.records,
+                visibleRecords = visibleRecords,
+                searchText = state.searchText,
+                dateFrom = state.dateFrom,
+                dateTo = state.dateTo,
+                sortField = state.sortField,
+                sortAsc = state.sortAsc,
+                onSearchChange = viewModel::setSearch,
+                onDateRangeChange = viewModel::setDateRange,
+                onSortChange = viewModel::setSort,
                 onEdit = onEditFuel,
                 onRequestDelete = viewModel::requestDeleteEntry
             )
@@ -166,6 +186,15 @@ private fun DetailContent(
     padding: PaddingValues,
     stats: VehicleStats,
     records: List<FuelRecord>,
+    visibleRecords: List<FuelRecord>,
+    searchText: String,
+    dateFrom: Long?,
+    dateTo: Long?,
+    sortField: SortField,
+    sortAsc: Boolean,
+    onSearchChange: (String) -> Unit,
+    onDateRangeChange: (Long?, Long?) -> Unit,
+    onSortChange: (SortField) -> Unit,
     onEdit: (Long) -> Unit,
     onRequestDelete: (FuelRecord) -> Unit
 ) {
@@ -236,60 +265,233 @@ private fun DetailContent(
             }
         } else {
             item {
-                Text(
-                    "Fuel History",
-                    modifier = Modifier.padding(top = 4.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                FilterSortBar(
+                    searchText = searchText,
+                    dateFrom = dateFrom,
+                    dateTo = dateTo,
+                    sortField = sortField,
+                    sortAsc = sortAsc,
+                    onSearchChange = onSearchChange,
+                    onDateRangeChange = onDateRangeChange,
+                    onSortChange = onSortChange
                 )
             }
-            items(records, key = { it.entry.id }) { record ->
-                var menuExpanded by remember { mutableStateOf(false) }
-                Card(
+            item {
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box {
-                        FuelEntryRow(record = record)
-                        // Trailing "more" button opens the edit/delete menu.
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(2.dp)
-                        ) {
-                            IconButton(onClick = { menuExpanded = true }) {
-                                Icon(
-                                    Icons.Filled.MoreVert,
-                                    contentDescription = "More options",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = menuExpanded,
-                                onDismissRequest = { menuExpanded = false }
+                    Text(
+                        "Fuel History",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        "${visibleRecords.size} of ${records.size}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            if (visibleRecords.isEmpty()) {
+                item {
+                    Text(
+                        "No entries match your filters.",
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                items(visibleRecords, key = { it.entry.id }) { record ->
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Box {
+                            FuelEntryRow(record = record)
+                            // Trailing "more" button opens the edit/delete menu.
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(2.dp)
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("Edit") },
-                                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onEdit(record.entry.id)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Delete") },
-                                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onRequestDelete(record)
-                                    }
-                                )
+                                IconButton(onClick = { menuExpanded = true }) {
+                                    Icon(
+                                        Icons.Filled.MoreVert,
+                                        contentDescription = "More options",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                                        onClick = {
+                                            menuExpanded = false
+                                            onEdit(record.entry.id)
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                                        onClick = {
+                                            menuExpanded = false
+                                            onRequestDelete(record)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FilterSortBar(
+    searchText: String,
+    dateFrom: Long?,
+    dateTo: Long?,
+    sortField: SortField,
+    sortAsc: Boolean,
+    onSearchChange: (String) -> Unit,
+    onDateRangeChange: (Long?, Long?) -> Unit,
+    onSortChange: (SortField) -> Unit
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = onSearchChange,
+            label = { Text("Search notes") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp),
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            placeholder = { Text("e.g. highway trip") }
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextButton(onClick = { showDatePicker = true }) {
+                Icon(Icons.Filled.DateRange, contentDescription = null)
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    when {
+                        dateFrom != null && dateTo != null ->
+                            "${formatDate(dateFrom)} – ${formatDate(dateTo)}"
+                        dateFrom != null -> "From ${formatDate(dateFrom)}"
+                        dateTo != null -> "Until ${formatDate(dateTo)}"
+                        else -> "Date range"
+                    }
+                )
+            }
+            if (dateFrom != null || dateTo != null) {
+                TextButton(onClick = { onDateRangeChange(null, null) }) {
+                    Text("Clear")
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SortChip(SortField.DATE, "Date", sortField, sortAsc, onSortChange)
+            SortChip(SortField.ODOMETER, "Odometer", sortField, sortAsc, onSortChange)
+            SortChip(SortField.COST, "Cost", sortField, sortAsc, onSortChange)
+        }
+    }
+
+    if (showDatePicker) {
+        DateRangePickerDialog(
+            initialFrom = dateFrom,
+            initialTo = dateTo,
+            onDismiss = { showDatePicker = false },
+            onConfirm = { from, to -> onDateRangeChange(from, to); showDatePicker = false }
+        )
+    }
+}
+
+@Composable
+private fun SortChip(
+    field: SortField,
+    label: String,
+    selected: SortField,
+    asc: Boolean,
+    onSortChange: (SortField) -> Unit
+) {
+    FilterChip(
+        selected = selected == field,
+        onClick = { onSortChange(field) },
+        label = { Text(label) },
+        trailingIcon = if (selected == field) {
+            {
+                Icon(
+                    if (asc) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                    contentDescription = if (asc) "Ascending" else "Descending"
+                )
+            }
+        } else null
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateRangePickerDialog(
+    initialFrom: Long?,
+    initialTo: Long?,
+    onDismiss: () -> Unit,
+    onConfirm: (Long?, Long?) -> Unit
+) {
+    var from by remember { mutableStateOf(initialFrom) }
+    var to by remember { mutableStateOf(initialTo) }
+    var picking by remember { mutableStateOf<Boolean?>(null) } // null=choose, true=from, false=to
+
+    if (picking == null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = { picking = true }) { Text("Set start") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+            },
+            text = { Text("Pick a date range for the fuel history.") }
+        )
+    } else {
+        val state = rememberDatePickerState(
+            initialSelectedDateMillis = if (picking == true) from ?: initialFrom ?: System.currentTimeMillis()
+            else to ?: initialTo ?: System.currentTimeMillis()
+        )
+        androidx.compose.material3.DatePickerDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(onClick = {
+                    val millis = state.selectedDateMillis
+                    if (picking == true) from = millis else onConfirm(from, millis)
+                    if (picking == true) picking = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+            }
+        ) {
+            androidx.compose.material3.DatePicker(state = state)
         }
     }
 }
